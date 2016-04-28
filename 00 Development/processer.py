@@ -21,14 +21,14 @@ class Image(object):
 #			   FUNCTIONS			 #
 ######################################
 
-#Print text to STDERR
+#Prints text to STDERR
 def printErrorMsg(text):
 	print >> stderr, text
 #Given a Path, converts all images to grey scale and returns a list of Image objects
 def loadImgs(path):
 	return [Image(cv2.imread(join(path, f),0), None, None) for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.jpg'))]
 #Given the keypoints of an image and the matrix of descriptors with matches return the list of KeyPoints associated
-def getKeyPointsFromDescriptor(keypoints, descriptor_matches):
+def getKeyPointsFromDescriptorMatch(keypoints, descriptor_matches):
 	kp = []
 	k = len(descriptor_matches[0])
 	for match in descriptor_matches:
@@ -52,7 +52,7 @@ if not isdir(tPath):
 	printErrorMsg("'"+tPath+"'"+" is not a valid directory\n"+USE)
 	exit(1)
 if (not isdir(vPath)):
-	printErrorMsg("'"+tPath+"'"+" is not a valid directory\n"+USE)
+	printErrorMsg("'"+vPath+"'"+" is not a valid directory\n"+USE)
 	exit(1)
 
 tImages = loadImgs(tPath)
@@ -92,7 +92,7 @@ print "FlannBasedMatcher succesfully trained"
 for imgV in vImages:
 	imgV.k, imgV.d = orb.detectAndCompute(imgV.img, None)
 	matchedDescriptors = flann.knnMatch(imgV.d, k=2)
-	img = cv2.drawKeypoints(imgV.img, getKeyPointsFromDescriptor(imgV.k, matchedDescriptors))
+	img = cv2.drawKeypoints(imgV.img, getKeyPointsFromDescriptorMatch(imgV.k, matchedDescriptors))
 
 	cv2.imshow('Matched Features', img)
 	cv2.waitKey(500) #500ms
