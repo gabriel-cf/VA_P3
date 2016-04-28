@@ -16,7 +16,6 @@ class Image(object):
 		self.k = key
 		self.d = descriptor
 		
-
 ######################################
 #			   FUNCTIONS			 #
 ######################################
@@ -24,6 +23,9 @@ class Image(object):
 #Prints text to STDERR
 def printErrorMsg(text):
 	print >> stderr, text
+#Prints an 'OK' message
+def printOK():
+	print "\033[92m\tOK!\033[0m" 
 #Given a Path, converts all images to grey scale and returns a list of Image objects
 def loadImgs(path):
 	return [Image(cv2.imread(join(path, f),0), None, None) for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.jpg'))]
@@ -62,12 +64,14 @@ vImages = loadImgs(vPath)
 orb = cv2.ORB(100,4,1)
 desc = [] #Training descriptors
 
+print "\033[93mDetecting KeyPoints of Training Images..\033[0m"
 # Get keypoints and descriptors for each image
 for img in tImages:
 	#find and compute the keypoints with ORB
 	img.k, img.d = orb.detectAndCompute(img.img, None)
 	desc.append(img.d)
-	
+printOK()
+
 # FLANN parameters
 FLANN_INDEX_LSH = 6
 index_params= dict(algorithm = FLANN_INDEX_LSH,
@@ -83,18 +87,18 @@ flann = cv2.FlannBasedMatcher(index_params,search_params)
 #img3 = drawMatches(tImages[0].img,tImages[0].k,tImages[1].img,tImages[1].k,matches[:10])
 #plt.imshow(img3,),plt.show()
 #############
-
+print "\033[93mTraining FlannBasedMatcher..\033[0m"
 flann.add(desc)
 flann.train()
+printOK()
 
-print "FlannBasedMatcher succesfully trained"
-
+print "\033[93mProcessing Testing Images..\033[0m"
 for imgV in vImages:
 	imgV.k, imgV.d = orb.detectAndCompute(imgV.img, None)
 	matchedDescriptors = flann.knnMatch(imgV.d, k=2)
 	img = cv2.drawKeypoints(imgV.img, getKeyPointsFromDescriptorMatch(imgV.k, matchedDescriptors))
 
 	cv2.imshow('Matched Features', img)
-	cv2.waitKey(500) #500ms
+	cv2.waitKey(250) #200ms
 	cv2.destroyWindow('Matched Features')
-
+printOK()
