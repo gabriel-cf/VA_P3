@@ -10,8 +10,9 @@ from utils import drawMatches
 #			   CLASSES				 #
 ######################################
 
-class KeyPoint(object):
-	def __init__(self, key, descriptor):
+class Image(object):
+	def __init__(self, image, key, descriptor):
+		self.img = image
 		self.k = key
 		self.d = descriptor
 		
@@ -23,9 +24,9 @@ class KeyPoint(object):
 #Print text to STDERR
 def printErrorMsg(text):
 	print >> stderr, text
-#Given a Path, converts all images to grey scale and returns a list of them
+#Given a Path, converts all images to grey scale and returns a list of Image objects
 def loadImgs(path):
-	return [cv2.imread(join(path, f),0) for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.jpg'))]
+	return [Image(cv2.imread(join(path, f),0), None, None) for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.jpg'))]
 
 ######################################
 #			    MAIN			 	 #
@@ -48,9 +49,9 @@ if not isdir(tPath):
 
 tImages = loadImgs(tPath)
 #vImages = loadImgs(vPath)
+
 #####KEYPOINTS CAPTURE#####
 orb = cv2.ORB(100,4,1)
-kp = []
 
 # FLANN parameters
 FLANN_INDEX_LSH = 6
@@ -62,17 +63,16 @@ search_params = dict(checks=50)   # or pass empty dictionary
 
 flann = cv2.FlannBasedMatcher(index_params,search_params)
 
-
+# Get keypoints and descriptors for each image
 for img in tImages:
 	#print "{0}/{1}".format(x+1,l)
 	#find and compute the keypoints with ORB
-	k, d = orb.detectAndCompute(img,None)
-	kp.append(KeyPoint(k,d))
-	flann.add(d) #Adds the descriptor to the matcher
+	img.k, img.d = orb.detectAndCompute(img.img, None)
+	flann.add(img.d) #Adds the descriptor to the matcher
 
 ## EXAMPLE ##
-matches = flann.match(kp[0].d,kp[1].d)
-img3 = drawMatches(tImages[0],kp[0].k,tImages[1],kp[1].k,matches[:10])
+matches = flann.match(tImages[0].d,tImages[1].d)
+img3 = drawMatches(tImages[0].img,tImages[0].k,tImages[1].img,tImages[1].k,matches[:10])
 plt.imshow(img3,),plt.show()
 #############
 
