@@ -25,7 +25,7 @@ def printErrorMsg(text):
 	print >> stderr, text
 #Prints an 'OK' message
 def printOK():
-	print "\033[92m\tOK!\033[0m" 
+	print "\033[92mOK!\033[0m" 
 #Given a Path, converts all images to grey scale and returns a list of Image objects
 def loadImgs(path):
 	return [Image(cv2.imread(join(path, f),0), None, None) for f in listdir(path) if (isfile(join(path, f)) and f.endswith('.jpg'))]
@@ -95,10 +95,25 @@ printOK()
 print "\033[93mProcessing Testing Images..\033[0m"
 for imgV in vImages:
 	imgV.k, imgV.d = orb.detectAndCompute(imgV.img, None)
-	matchedDescriptors = flann.knnMatch(imgV.d, k=2)
+	matchedDescriptors = flann.knnMatch(imgV.d, k=5)
 	img = cv2.drawKeypoints(imgV.img, getKeyPointsFromDescriptorMatch(imgV.k, matchedDescriptors))
 
-	cv2.imshow('Matched Features', img)
-	cv2.waitKey(250) #200ms
-	cv2.destroyWindow('Matched Features')
+	#cv2.imshow('Matched Features', img)
+	#cv2.waitKey(300) #300ms
+	#cv2.destroyWindow('Matched Features')
 printOK()
+
+#### 2. cv2.CascadeClassifier ####
+
+print "\033[93mProcessing CascadeClassifier..\033[0m"
+classifier = cv2.CascadeClassifier(raw_input("XML classifier:"))
+for img in vImages:
+	car = classifier.detectMultiScale(img.img, 1.3, 2) #Returns an array of rectangles (x,y,w,h)
+	print car
+	for (x,y,w,h) in car:
+		cv2.rectangle(img.img,(x,y),(x+w,y+h),(255,0,0),2) #Print the rectangle on the image
+		#roi_gray = vImages[0].img[y:y+h, x:x+w] #Important! Rectangle area of the car
+
+	cv2.imshow('Matched Features', img.img)
+	cv2.waitKey(0)
+	cv2.destroyWindow('Matched Features')
